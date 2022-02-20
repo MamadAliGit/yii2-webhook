@@ -13,6 +13,11 @@ use yii\base\InvalidConfigException;
  */
 class Webhook extends Component
 {
+    /**
+     * @var string|array the webhook url.
+     */
+    public $url;
+
 	/**
 	 * @var string the queue name
 	 */

@@ -52,7 +52,7 @@ class WebhookBehavior extends Behavior
 	/**
 	 * @var string|array the webhook url.
 	 */
-	public $url;
+	public $url = null;
 
 	/**
 	 * @var string name of model class that will send to webhook
@@ -99,10 +99,18 @@ class WebhookBehavior extends Behavior
 	 */
 	public $dataAttribute = 'data';
 
+    public $webhookComponent;
+
 
 	public function init()
 	{
 		parent::init();
+
+        $this->webhookComponent = Yii::$app->get('webhook');
+        if(!$this->url) {
+            $this->url = $this->webhookComponent->url;
+        }
+
 		if (empty($this->url)) {
 			throw new InvalidConfigException('The "url" property must be set.');
 		}
