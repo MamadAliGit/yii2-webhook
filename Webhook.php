@@ -33,11 +33,13 @@ class Webhook extends Component
 	 */
 	public $jobClass = 'mamadali\webhook\job\WebhookJob';
 
+    /**
+     * @var bool save webhook log
+     */
+    public $saveLog = true;
+
 	public function init()
 	{
 		parent::init();
-		if (!Yii::$app->has($this->queueName)) {
-			throw new InvalidConfigException("You must configure '$this->queueName' component to use webhook component.");
-		}
 	}
 }

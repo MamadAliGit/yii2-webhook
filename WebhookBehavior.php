@@ -2,6 +2,7 @@
 
 namespace mamadali\webhook;
 
+use Closure;
 use Yii;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
@@ -59,6 +60,11 @@ class WebhookBehavior extends Behavior
 	 */
 	public $modelName;
 
+    /**
+     * @var string the primary key field name.
+     */
+    public $primaryKey = 'id';
+
 	/**
 	 * @var array the scenarios in which the behavior will be triggered
 	 */
@@ -85,28 +91,23 @@ class WebhookBehavior extends Behavior
 	public $when;
 
 	/**
-	 * @var bool save webhook log
-	 */
-	public $saveLog = true;
-
-	/**
 	 * @var bool send webhook data to queue and send with job
 	 */
 	public $sendToQueue = false;
 
-	/**
-	 * @var string the attribute that will send to webhook
-	 */
-	public $dataAttribute = 'data';
-
-    public $webhookComponent;
+    private $webhookComponent;
 
 
+    /**
+     * @inheritdoc
+     * @throws InvalidConfigException
+     */
 	public function init()
 	{
 		parent::init();
 
         $this->webhookComponent = Yii::$app->get('webhook');
+
         if(!$this->url) {
             $this->url = $this->webhookComponent->url;
         }
@@ -115,9 +116,20 @@ class WebhookBehavior extends Behavior
 			throw new InvalidConfigException('The "url" property must be set.');
 		}
 
-		if($this->sendToQueue && !Yii::$app->has('webhook')) {
-			throw new InvalidConfigException("You must configure 'webhook' component to use sendToQueue.");
+		if($this->sendToQueue) {
+            if(!Yii::$app->has('webhook')){
+                throw new InvalidConfigException("You must configure 'webhook' component to use sendToQueue.");
+            }
+
+            $queueName = $this->webhookComponent->queueName;
+            if (!Yii::$app->has($queueName)) {
+                throw new InvalidConfigException("You must configure '$queueName' component to use webhook component.");
+            }
 		}
+
+        if($this->when && !is_callable($this->when)) {
+            throw new InvalidConfigException('The "when" property must be callable.');
+        }
 	}
 
 	public function events()
@@ -134,12 +146,94 @@ class WebhookBehavior extends Behavior
 	 */
 	public function afterInsert()
 	{
-
+        if($this->canSendWebhook()){
+            $this->sendToWebhook('insert');
+        }
 	}
 
-	public function getData()
-	{
+    public function beforeUpdate()
+    {
+        if($this->canSendWebhook()){
+            $this->sendToWebhook('update');
+        }
+    }
 
+    public function afterDelete()
+    {
+        if($this->canSendWebhook()){
+            $this->sendToWebhook('delete');
+        }
+    }
+
+    /**
+     * @return bool
+     * check if can send webhook
+     */
+    protected function canSendWebhook()
+    {
+        if(!in_array($this->owner->scenario, $this->scenarios)){
+            return false;
+        }
+
+        if ($this->when instanceof Closure) {
+            return (bool)call_user_func($this->when, $this->owner);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param $action string event name
+     */
+    protected function sendToWebhook(string $action)
+    {
+        $data = $this->getResponse($action);
+        if(!$data) {
+            return;
+        }
+
+        if($this->sendToQueue) {
+            $this->sendToQueue($this->url, $data);
+        } else {
+            $this->webhookComponent->send($this->url, $data);
+        }
+    }
+
+    /**
+     * @param $action string insert|update|delete
+     * @return array data to send to webhook
+     */
+    protected function getResponse($action): array
+    {
+        return [
+            'model_name' => $this->modelName,
+            'action' => $action,
+            'model_id' => $this->owner->{$this->primaryKey},
+            'data' => $this->getAttributes(),
+        ];
+    }
+
+    /**
+     * @return array attributes to send to webhook
+     */
+	protected function getAttributes(): array
+    {
+        $attributes = !empty($this->attributes) ? $this->attributes : $this->owner->getAttributes();
+        $data = [];
+
+        foreach ($attributes as $field => $definition) {
+            if (is_int($field)) {
+                $field = $definition;
+            }
+
+            if(is_string($definition) && !in_array($field, $this->exceptAttributes)){
+                $data[$field] = $this->owner->$field;
+            } elseif ($definition instanceof Closure) {
+                $data[$field] = call_user_func($definition, $this->owner);
+            }
+        }
+
+        return $data;
 	}
 
 }
