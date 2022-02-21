@@ -31,8 +31,9 @@ class WebhookLog extends \yii\db\ActiveRecord
     {
         return [
             [['webhook_id'], 'required'],
-            [['webhook_id', 'is_ok', 'response_status_code'], 'integer'],
-            [['response_data', 'response_headers'], 'string', 'max' => 255],
+            [['webhook_id', 'response_status_code'], 'integer'],
+			[['is_ok'], 'boolean'],
+            [['response_data', 'response_headers'], 'safe'],
         ];
     }
 

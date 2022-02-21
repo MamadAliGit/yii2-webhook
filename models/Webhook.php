@@ -8,10 +8,13 @@ use Yii;
  * This is the model class for table "{{%webhook}}".
  *
  * @property int $id
+ * @property string $url
+ * @property string $method
+ * @property string $action
  * @property string $model_name
  * @property string $model_class
  * @property int $model_id
- * @property array $data
+ * @property string $data
  * @property string $headers
  */
 class Webhook extends \yii\db\ActiveRecord
@@ -30,10 +33,10 @@ class Webhook extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['model_name', 'model_class', 'model_id'], 'required'],
+            [['url', 'method', 'action', 'model_name', 'model_class', 'model_id'], 'required'],
             [['model_id'], 'integer'],
-            [['data'], 'safe'],
-            [['model_name', 'model_class', 'headers'], 'string', 'max' => 255],
+            [['data', 'headers'], 'safe'],
+            [['model_name', 'model_class'], 'string', 'max' => 255],
         ];
     }
 
@@ -44,6 +47,9 @@ class Webhook extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
+            'url' => Yii::t('app', 'Url'),
+            'method' => Yii::t('app', 'Method'),
+            'action' => Yii::t('app', 'Action'),
             'model_name' => Yii::t('app', 'Model Name'),
             'model_class' => Yii::t('app', 'Model Class'),
             'model_id' => Yii::t('app', 'Model ID'),

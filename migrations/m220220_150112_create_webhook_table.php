@@ -14,11 +14,14 @@ class m220220_150112_create_webhook_table extends Migration
     {
         $this->createTable('{{%webhook}}', [
             'id' => $this->primaryKey(),
+            'url' => $this->string()->notNull(),
+            'method' => $this->string()->notNull(),
+            'action' => $this->string()->notNull(),
             'model_name' => $this->string()->notNull(),
             'model_class' => $this->string()->notNull(),
             'model_id' => $this->integer()->notNull(),
-            'data' => $this->json()->null(),
-            'headers' => $this->string()->null(),
+            'data' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
+            'headers' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
         ]);
     }
 
