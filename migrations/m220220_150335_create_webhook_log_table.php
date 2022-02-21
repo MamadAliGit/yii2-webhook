@@ -14,15 +14,10 @@ class m220220_150335_create_webhook_log_table extends Migration
     {
         $this->createTable('{{%webhook_log}}', [
             'id' => $this->primaryKey(),
-            'model_name' => $this->string()->notNull(),
-            'model_class' => $this->string()->notNull(),
-            'model_id' => $this->integer()->notNull(),
-            'data' => $this->json()->null()->defaultValue(null),
-            'status' => $this->integer()->notNull()->defaultValue(1),
-            'created_by' => $this->integer()->unsigned()->null()->defaultValue(null),
-            'updated_by' => $this->integer()->unsigned()->null()->defaultValue(null),
-            'created_at' => $this->integer()->unsigned()->null()->defaultValue(null),
-            'updated_at' => $this->integer()->unsigned()->null()->defaultValue(null),
+            'webhook_id' => $this->integer()->notNull(),
+            'response_status_code' => $this->integer()->null(),
+            'response_data' => $this->string()->null(),
+            'response_headers' => $this->string()->null(),
         ]);
     }
 

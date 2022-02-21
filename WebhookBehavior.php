@@ -3,6 +3,7 @@
 namespace mamadali\webhook;
 
 use Closure;
+use console\job\RepairJob;
 use Yii;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
@@ -51,9 +52,14 @@ class WebhookBehavior extends Behavior
 {
 
 	/**
-	 * @var string|array the webhook url.
+	 * @var string the webhook url.
 	 */
-	public $url = null;
+	public $url;
+
+	/**
+	 * @var string the http method.
+	 */
+	public $send_method;
 
 	/**
 	 * @var string name of model class that will send to webhook
@@ -95,7 +101,20 @@ class WebhookBehavior extends Behavior
 	 */
 	public $sendToQueue = false;
 
+	/**
+	 * @var Webhook
+	 */
     private $webhookComponent;
+
+	/**
+	 * @var array of additional data to send to webhook
+	 */
+	public $additionalData = [];
+
+	/**
+	 * @var array of headers to send to webhook
+	 */
+	public $headers = [];
 
 
     /**
@@ -111,6 +130,10 @@ class WebhookBehavior extends Behavior
         if(!$this->url) {
             $this->url = $this->webhookComponent->url;
         }
+
+		if(!$this->send_method) {
+			$this->send_method = $this->webhookComponent->send_method;
+		}
 
 		if (empty($this->url)) {
 			throw new InvalidConfigException('The "url" property must be set.');
@@ -188,19 +211,36 @@ class WebhookBehavior extends Behavior
     protected function sendToWebhook(string $action)
     {
         $data = $this->getResponse($action);
-        if(!$data) {
-            return;
-        }
+		$headers = $this->getHeaders();
 
         if($this->sendToQueue) {
-            $this->sendToQueue($this->url, $data);
+            $this->sendToQueue($this->url, $this->send_method, $data, $headers);
         } else {
-            $this->webhookComponent->send($this->url, $data);
+            $this->webhookComponent->send($this->url, $this->send_method, $data, $headers);
         }
     }
 
+	/**
+	 * @param $url string url to send webhook
+	 * @param $method string http method
+	 * @param $data array of data to send to webhook
+	 * @param $headers array of headers to send to webhook
+	 * @return string job id
+	 */
+	protected function sendToQueue($url, $method, $data, $headers)
+	{
+		$jobClass = $this->webhookComponent->jobClass;
+		return Yii::$app->{$this->webhookComponent->queueName}->push(new $jobClass([
+				'url' => $url,
+				'method' => $method,
+				'data' => $data,
+				'headers' => $headers,
+			] + $this->webhookComponent->additionalJobData
+		));
+	}
+
     /**
-     * @param $action string insert|update|delete
+     * @param $action string event name
      * @return array data to send to webhook
      */
     protected function getResponse($action): array
@@ -210,7 +250,7 @@ class WebhookBehavior extends Behavior
             'action' => $action,
             'model_id' => $this->owner->{$this->primaryKey},
             'data' => $this->getAttributes(),
-        ];
+        ] + $this->getAdditionalData();
     }
 
     /**
@@ -234,6 +274,39 @@ class WebhookBehavior extends Behavior
         }
 
         return $data;
+	}
+
+	/**
+	 * @return array
+	 */
+	protected function getAdditionalData()
+	{
+		$data = [];
+
+		foreach ($this->additionalData as $field => $definition) {
+			if ($definition instanceof Closure) {
+				$data[$field] = call_user_func($definition, $this->owner);
+			} else {
+				$data[$field] = $definition;
+			}
+		}
+
+		return $data;
+	}
+
+	public function getHeaders()
+	{
+		$data = [];
+
+		foreach ($this->headers as $field => $definition) {
+			if ($definition instanceof Closure) {
+				$data[$field] = call_user_func($definition, $this->owner);
+			} else {
+				$data[$field] = $definition;
+			}
+		}
+
+		return $data;
 	}
 
 }
