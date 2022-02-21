@@ -3,6 +3,7 @@
 namespace mamadali\webhook\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "{{%webhook_log}}".
@@ -13,6 +14,8 @@ use Yii;
  * @property int $response_status_code
  * @property string $response_data
  * @property string $response_headers
+ * @property int $created_at
+ * @property int $updated_at
  */
 class WebhookLog extends \yii\db\ActiveRecord
 {
@@ -24,6 +27,13 @@ class WebhookLog extends \yii\db\ActiveRecord
         return '{{%webhook_log}}';
     }
 
+	public function behaviors()
+	{
+		return [
+			TimestampBehavior::class,
+		];
+	}
+
     /**
      * {@inheritdoc}
      */
@@ -31,7 +41,7 @@ class WebhookLog extends \yii\db\ActiveRecord
     {
         return [
             [['webhook_id'], 'required'],
-            [['webhook_id', 'response_status_code'], 'integer'],
+            [['webhook_id', 'response_status_code', 'created_at', 'updated_at'], 'integer'],
 			[['is_ok'], 'boolean'],
             [['response_data', 'response_headers'], 'safe'],
         ];

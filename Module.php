@@ -69,7 +69,6 @@ class Module extends \yii\base\Module
 	public function init()
 	{
 		parent::init();
-		Yii::$app->setComponents(require(__DIR__ . '/config.php'));
 
 		if (!in_array($this->send_method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])) {
 			throw new InvalidConfigException('Invalid send_method, must be GET, POST, PUT, DELETE or PATCH');

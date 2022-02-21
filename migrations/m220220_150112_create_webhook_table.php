@@ -22,6 +22,8 @@ class m220220_150112_create_webhook_table extends Migration
             'model_id' => $this->integer()->notNull(),
             'data' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
             'headers' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
+			'created_at' => $this->integer()->notNull(),
+			'updated_at' => $this->integer()->notNull(),
         ]);
     }
 

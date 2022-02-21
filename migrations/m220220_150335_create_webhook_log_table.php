@@ -19,6 +19,8 @@ class m220220_150335_create_webhook_log_table extends Migration
             'response_status_code' => $this->integer()->null(),
             'response_data' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
             'response_headers' => $this->getDb()->getSchema()->createColumnSchemaBuilder('longtext'),
+			'created_at' => $this->integer()->notNull(),
+			'updated_at' => $this->integer()->notNull(),
         ]);
     }
 
