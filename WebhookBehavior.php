@@ -156,11 +156,15 @@ class WebhookBehavior extends Behavior
 		}
 
 		if($this->sendToQueue) {
-            if(!Yii::$app->has('webhook')){
-                throw new InvalidConfigException("You must configure 'webhook' component to use sendToQueue.");
-            }
+			if (!Yii::$app->hasModule('webhook')) {
+				throw new InvalidConfigException("You must configure 'webhook' module to use sendToQueue.");
+			}
 
-            $queueName = $this->module->queueName;
+			if(!$this->module->queueName) {
+				throw new InvalidConfigException("You must configure 'queueName' in 'webhook' module to use sendToQueue.");
+			}
+
+			$queueName = $this->module->queueName;
             if (!Yii::$app->has($queueName)) {
                 throw new InvalidConfigException("You must configure '$queueName' component to use webhook component.");
             }

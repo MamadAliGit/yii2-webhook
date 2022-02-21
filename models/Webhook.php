@@ -44,9 +44,10 @@ class Webhook extends \yii\db\ActiveRecord
     {
         return [
             [['url', 'method', 'action', 'model_name', 'model_class', 'model_id'], 'required'],
+			//[['url'], 'url'],
             [['model_id', 'created_at', 'updated_at'], 'integer'],
             [['data', 'headers'], 'safe'],
-            [['model_name', 'model_class'], 'string', 'max' => 255],
+            [['model_name', 'model_class', 'method', 'action'], 'string', 'max' => 255],
         ];
     }
 
