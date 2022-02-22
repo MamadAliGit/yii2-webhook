@@ -14,7 +14,6 @@ $this->title = $model->id;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Webhooks'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-
 ?>
 <div class="webhook-view">
 
@@ -30,14 +29,14 @@ $this->params['breadcrumbs'][] = $this->title;
 			[
 				'attribute' => 'data',
 				'value' => function (Webhook $model) {
-					return Html::tag('pre', $model->data);
+					return '<pre>' . json_encode(json_decode($model->data), JSON_PRETTY_PRINT) . '</pre>';
 				},
 				'format' => 'html'
 			],
 			[
 				'attribute' => 'headers',
 				'value' => function (Webhook $model) {
-					return Html::tag('pre', $model->headers);
+					return '<pre>' . json_encode(json_decode($model->headers), JSON_PRETTY_PRINT) . '</pre>';
 				},
 				'format' => 'html'
 			],
@@ -58,14 +57,14 @@ $this->params['breadcrumbs'][] = $this->title;
 			[
 				'attribute' => 'response_data',
 				'value' => function($model) {
-					return Html::tag('pre', $model->response_data);
+					return '<pre>' . json_encode(json_decode($model->response_data), JSON_PRETTY_PRINT) . '</pre>';
 				},
 				'format' => 'html',
 			],
 			[
 				'attribute' => 'response_headers',
 				'value' => function ($model) {
-					return Html::tag('pre', $model->response_headers);
+					return '<pre>' . json_encode(json_decode($model->response_headers), JSON_PRETTY_PRINT) . '</pre>';
 				},
 				'format' => 'html',
 			],
