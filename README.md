@@ -1,6 +1,6 @@
 Yii2 Webhook Behavior
 =====================
-Yii2 send changes to webhook
+Helps you to send models changes to a webhook url
 
 Installation
 ------------
