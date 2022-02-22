@@ -194,6 +194,9 @@ class WebhookBehavior extends Behavior
         }
 	}
 
+	/**
+	 * This method is called at the beginning of updating a record.
+	 */
     public function beforeUpdate()
     {
         if($this->canSendWebhook()){
@@ -201,6 +204,9 @@ class WebhookBehavior extends Behavior
         }
     }
 
+	/**
+	 * This method is called at the beginning of deleting a record.
+	 */
     public function afterDelete()
     {
         if($this->canSendWebhook()){
@@ -214,7 +220,7 @@ class WebhookBehavior extends Behavior
      */
     protected function canSendWebhook()
     {
-        if(!in_array($this->owner->scenario, $this->scenarios)){
+        if($this->scenarios && !in_array($this->owner->scenario, $this->scenarios)){
             return false;
         }
 
@@ -315,10 +321,12 @@ class WebhookBehavior extends Behavior
                 $field = $definition;
             }
 
-            if(is_string($definition) && !in_array($field, $this->exceptAttributes)){
-                $data[$field] = $this->owner->$field;
-            } elseif ($definition instanceof Closure) {
-                $data[$field] = call_user_func($definition, $this->owner);
+            if(!in_array($field, $this->exceptAttributes)){
+				if ($definition instanceof Closure) {
+					$data[$field] = call_user_func($definition, $this->owner);
+				} else {
+					$data[$field] = $this->owner->$field;
+				}
             }
         }
 

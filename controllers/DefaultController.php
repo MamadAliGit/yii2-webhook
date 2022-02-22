@@ -38,10 +38,11 @@ class DefaultController extends Controller
 	 */
 	public function actionView($id)
 	{
-		$searchModel = new WebhookLogSearch();
+		$model = $this->findModel($id);
+		$searchModel = new WebhookLogSearch(['webhook_id' => $model->id]);
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 		return $this->render('view', [
-			'model' => $this->findModel($id),
+			'model' => $model,
 			'searchModel' => $searchModel,
 			'dataProvider' => $dataProvider,
 		]);
