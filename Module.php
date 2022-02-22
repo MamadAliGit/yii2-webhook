@@ -2,9 +2,8 @@
 
 namespace mamadali\webhook;
 
-use mamadali\webhook\models\Webhook as WebhookModel;
+use mamadali\webhook\models\Webhook;
 use mamadali\webhook\models\WebhookLog;
-use Yii;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\helpers\Html;
@@ -104,10 +103,10 @@ class Module extends \yii\base\Module
 
 
 	/**
-	 * @param $webhook WebhookModel
+	 * @param $webhook Webhook
 	 * @param $response Response
 	 */
-	protected function saveLog(WebhookModel $webhook, Response $response)
+	protected function saveLog(Webhook $webhook, Response $response)
 	{
 		$transaction = \Yii::$app->db->beginTransaction();
 		try {
@@ -135,12 +134,12 @@ class Module extends \yii\base\Module
 	/**
 	 * @param $id integer the webhook id
 	 *
-	 * @return WebhookModel
+	 * @return Webhook
 	 * @throws HttpException
 	 */
 	protected function findWebhookModel($id)
 	{
-		$model = WebhookModel::findOne($id);
+		$model = Webhook::findOne($id);
 		if (!$model) {
 			throw new HttpException(404, 'Webhook not found');
 		}

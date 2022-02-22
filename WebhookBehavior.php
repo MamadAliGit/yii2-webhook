@@ -258,7 +258,7 @@ class WebhookBehavior extends Behavior
 			$webhook->model_class = get_class($this->owner);
 			$webhook->method = $this->send_method;
 			$webhook->data = Json::encode($this->getResponse($action));
-			$webhook->headers = Json::encode($this->getHeaders());
+			$webhook->headers = Json::encode($this->initializeData($this->headers));
 
 			if ($webhook->save()) {
 				$transaction->commit();
@@ -284,7 +284,7 @@ class WebhookBehavior extends Behavior
 		$jobClass = $this->module->jobNamespace . '\WebhookJob';
 		return Yii::$app->{$this->module->queueName}->push(new $jobClass([
 				'webhook_id' => $webhook_id,
-			] + $this->getJobAdditionalData()
+			] + $this->initializeData($this->module->additionalJobData)
 		));
 	}
 
@@ -299,7 +299,7 @@ class WebhookBehavior extends Behavior
             'action' => $action,
             'model_id' => $this->owner->{$this->primaryKey},
             'data' => $this->getAttributes(),
-        ] + $this->getAdditionalData();
+        ] + $this->initializeData($this->additionalData);
     }
 
     /**
@@ -326,46 +326,14 @@ class WebhookBehavior extends Behavior
 	}
 
 	/**
+	 * @param $array array data
 	 * @return array
 	 */
-	protected function getAdditionalData()
+	protected function initializeData($array)
 	{
 		$data = [];
 
-		foreach ($this->additionalData as $field => $definition) {
-			if ($definition instanceof Closure) {
-				$data[$field] = call_user_func($definition, $this->owner);
-			} else {
-				$data[$field] = $definition;
-			}
-		}
-
-		return $data;
-	}
-
-	/**
-	 * @return array
-	 */
-	protected function getJobAdditionalData()
-	{
-		$data = [];
-
-		foreach ($this->module->additionalJobData as $field => $definition) {
-			if ($definition instanceof Closure) {
-				$data[$field] = call_user_func($definition, $this->owner);
-			} else {
-				$data[$field] = $definition;
-			}
-		}
-
-		return $data;
-	}
-
-	public function getHeaders()
-	{
-		$data = [];
-
-		foreach ($this->headers as $field => $definition) {
+		foreach ($array as $field => $definition) {
 			if ($definition instanceof Closure) {
 				$data[$field] = call_user_func($definition, $this->owner);
 			} else {
