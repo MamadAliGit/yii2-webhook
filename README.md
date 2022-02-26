@@ -69,7 +69,40 @@ When any changes on your model, will be send data to webhook like this:
 }
 ```
 #Advanced usage
-you can change url for send webhook in any model, like this:
+
+### You can add authentication to your webhook url, like this:
+
+for use basic auth:
+
+```php
+    'modules' => [
+        ...
+        'webhook' => [
+            'class' => 'mamadali\webhook\Module',
+            'url' => 'https://example.com/webhook',
+            'authToken' => base64_encode("$username:$password"), // change username and password
+        ],
+        ...
+    ];
+```
+
+for use bearer auth:
+
+```php
+    'modules' => [
+        ...
+        'webhook' => [
+            'class' => 'mamadali\webhook\Module',
+            'url' => 'https://example.com/webhook',
+            'authMethod' => 'Bearer',
+            'authToken' => $token, // your token here
+        ],
+        ...
+    ];
+```
+
+
+###you can change url and auth for send webhook in any model, like this:
 ```php
 public function behaviors()
 {
@@ -224,3 +257,4 @@ class WebhookJob extends BaseObject implements RetryableJobInterface
 	}
 }
 ```
+
