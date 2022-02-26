@@ -61,6 +61,24 @@ class WebhookBehavior extends Behavior
 	public $url;
 
 	/**
+	 * @var bool whether to enable the auth.
+	 */
+	public $auth;
+
+	/**
+	 * @var string the webhook url auth method
+	 * you can use 'Basic' | 'Bearer' | 'Digest'
+	 */
+	public $authMethod;
+
+	/**
+	 * @var string the webhook url auth toekn
+	 * @see https://www.loginradius.com/blog/async/everything-you-want-to-know-about-authorization-headers/
+	 * example for Basic: base64_encode("$username:$password");
+	 */
+	public $authToken;
+
+	/**
 	 * @var string the http method.
 	 */
 	public $send_method;
@@ -141,6 +159,22 @@ class WebhookBehavior extends Behavior
 
 		if(!$this->send_method) {
 			$this->send_method = $this->module->send_method;
+		}
+
+		if (!$this->auth) {
+			$this->auth = $this->module->auth;
+		}
+
+		if (!$this->authMethod) {
+			$this->authMethod = $this->module->authMethod;
+		}
+
+		if (!$this->authToken) {
+			$this->authToken = $this->module->authToken;
+		}
+
+		if($this->auth && !$this->authToken) {
+			throw new InvalidConfigException('You must set authToken to enable auth.');
 		}
 
 		if(!in_array($this->send_method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])) {
@@ -264,7 +298,7 @@ class WebhookBehavior extends Behavior
 			$webhook->model_class = get_class($this->owner);
 			$webhook->method = $this->send_method;
 			$webhook->data = Json::encode($this->getResponse($action));
-			$webhook->headers = Json::encode($this->initializeData($this->headers));
+			$webhook->headers = Json::encode($this->getHeaders());
 
 			if ($webhook->save()) {
 				$transaction->commit();
@@ -292,6 +326,12 @@ class WebhookBehavior extends Behavior
 				'webhook_id' => $webhook_id,
 			] + $this->initializeData($this->module->additionalJobData)
 		));
+	}
+	
+	protected function getHeaders()
+	{
+		$auth = $this->auth ? ['Authorization' => $this->authMethod . ' ' . $this->authToken] : [];
+		return $auth + $this->initializeData($this->headers);
 	}
 
     /**

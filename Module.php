@@ -34,6 +34,24 @@ class Module extends \yii\base\Module
 	public $url;
 
 	/**
+	 * @var bool whether to enable the auth.
+	 */
+	public $auth = false;
+
+	/**
+	 * @var string the webhook url auth method
+	 * you can use 'Basic' | 'Bearer' | 'Digest'
+	 */
+	public $authMethod = 'Basic';
+
+	/**
+	 * @var string the webhook url auth toekn
+	 * @see https://www.loginradius.com/blog/async/everything-you-want-to-know-about-authorization-headers/
+	 * example for Basic: base64_encode("$username:$password");
+	 */
+	public $authToken;
+
+	/**
 	 * @var string the http method.
 	 */
 	public $send_method = 'POST';
@@ -68,6 +86,10 @@ class Module extends \yii\base\Module
 	public function init()
 	{
 		parent::init();
+
+		if ($this->auth && !$this->authToken) {
+			throw new InvalidConfigException('You must set authToken to enable auth.');
+		}
 
 		if (!in_array($this->send_method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])) {
 			throw new InvalidConfigException('Invalid send_method, must be GET, POST, PUT, DELETE or PATCH');
