@@ -173,6 +173,10 @@ class WebhookBehavior extends Behavior
 			$this->authToken = $this->module->authToken;
 		}
 
+		if($this->authToken && !$this->auth){
+			throw new InvalidConfigException('You must set auth to true if you want to set authToken.');
+		}
+
 		if($this->auth && !$this->authToken) {
 			throw new InvalidConfigException('You must set authToken to enable auth.');
 		}

@@ -119,7 +119,7 @@ class Module extends \yii\base\Module
 		if ($response->isOk) {
 			return true;
 		} else {
-			throw new HttpException($response->statusCode);
+			throw new HttpException($response->statusCode, json_encode($response->content));
 		}
 	}
 
