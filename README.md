@@ -2,6 +2,10 @@ Yii2 Webhook Behavior
 =====================
 Helps you to send models changes to a webhook url
 
+[![Latest Stable Version](https://img.shields.io/packagist/v/mamadali/yii2-webhook.svg)](https://packagist.org/packages/mamadali/yii2-webhook)
+[![Total Downloads](https://img.shields.io/packagist/dt/mamadali/yii2-webhook.svg)](https://packagist.org/packages/mamadali/yii2-webhook)
+
+
 Installation
 ------------
 
