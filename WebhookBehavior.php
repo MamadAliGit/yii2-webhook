@@ -399,8 +399,8 @@ class WebhookBehavior extends Behavior
 	{
 
 		$auth = [];
-		if($this->auth){
-			if ($this->authMethod == self::AUTH_METHOD_CUSTOM && $this->authTokenSendIn == self::AUTH_TOKEN_SEND_IN_HEADER) {
+		if($this->auth && $this->authTokenSendIn == self::AUTH_TOKEN_SEND_IN_HEADER){
+			if ($this->authMethod == self::AUTH_METHOD_CUSTOM) {
 				$auth = [$this->authTokenField => $this->authToken];
 			} else {
 				$auth = ['Authorization' => $this->authMethod . ' ' . $this->authToken];
@@ -490,11 +490,11 @@ class WebhookBehavior extends Behavior
 				self::AUTH_TOKEN_SEND_IN_BODY,
 			],
 			'httpMethods' => [
-				HTTP_METHOD_GET,
-				HTTP_METHOD_POST,
-				HTTP_METHOD_PUT,
-				HTTP_METHOD_DELETE,
-				HTTP_METHOD_PATCH,
+				self::HTTP_METHOD_GET,
+				self::HTTP_METHOD_POST,
+				self::HTTP_METHOD_PUT,
+				self::HTTP_METHOD_DELETE,
+				self::HTTP_METHOD_PATCH,
 			],
 		];
 
