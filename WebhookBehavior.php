@@ -55,6 +55,21 @@ use yii\helpers\Json;
 class WebhookBehavior extends Behavior
 {
 
+	const AUTH_METHOD_BASIC = 'Basic';
+	const AUTH_METHOD_BEARER = 'Bearer';
+	const AUTH_METHOD_DIGEST = 'Digest';
+	const AUTH_METHOD_CUSTOM = 'custom';
+	
+	const HTTP_METHOD_GET = 'GET';
+	const HTTP_METHOD_POST = 'POST';
+	const HTTP_METHOD_PUT = 'PUT';
+	const HTTP_METHOD_DELETE = 'DELETE';
+	const HTTP_METHOD_PATCH = 'PATCH';
+	
+	const AUTH_TOKEN_SEND_IN_HEADER = 'header';
+	const AUTH_TOKEN_SEND_IN_QUERY = 'query';
+	const AUTH_TOKEN_SEND_IN_BODY = 'body';
+
 	/**
 	 * @var string the webhook url.
 	 */
@@ -67,9 +82,21 @@ class WebhookBehavior extends Behavior
 
 	/**
 	 * @var string the webhook url auth method
-	 * you can use 'Basic' | 'Bearer' | 'Digest'
+	 * you can use 'Basic' | 'Bearer' | 'Digest' | 'custom'
 	 */
 	public $authMethod;
+
+	/**
+	 * @var string the wat to send auth token
+	 * you can use 'header' | 'body' | 'query'
+	 */
+	public $authTokenSendIn;
+
+
+	/**
+	 * @var string the auth token field name send in $authTokenSendIn
+	 */
+	public $authTokenField;
 
 	/**
 	 * @var string the webhook url auth toekn
@@ -173,6 +200,22 @@ class WebhookBehavior extends Behavior
 			$this->authToken = $this->module->authToken;
 		}
 
+		if (!$this->authTokenSendIn) {
+			$this->authTokenSendIn = $this->module->authTokenSendIn;
+		}
+
+		if (!$this->authTokenField) {
+			$this->authTokenField = $this->module->authTokenField;
+		}
+
+		if (!in_array($this->authMethod, self::items('authMethods'))) {
+			throw new InvalidConfigException('Invalid auth method');
+		}
+
+		if (!in_array($this->authTokenSendIn, self::items('authTokenSendIn'))) {
+			throw new InvalidConfigException('Invalid auth token send in');
+		}
+
 		if($this->authToken && !$this->auth){
 			throw new InvalidConfigException('You must set auth to true if you want to set authToken.');
 		}
@@ -181,7 +224,7 @@ class WebhookBehavior extends Behavior
 			throw new InvalidConfigException('You must set authToken to enable auth.');
 		}
 
-		if(!in_array($this->send_method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])) {
+		if(!in_array($this->send_method, self::items('httpMethods'))) {
 			throw new InvalidConfigException('Invalid send_method, must be GET, POST, PUT, DELETE or PATCH');
 		}
 
@@ -295,7 +338,7 @@ class WebhookBehavior extends Behavior
 		$transaction = \Yii::$app->db->beginTransaction();
 		try {
 			$webhook = new WebhookModel();
-			$webhook->url = $this->url;
+			$webhook->url = $this->getUrl();
 			$webhook->action = $action;
 			$webhook->model_id = $this->owner->{$this->primaryKey};
 			$webhook->model_name = $this->modelName;
@@ -331,10 +374,39 @@ class WebhookBehavior extends Behavior
 			] + $this->initializeData($this->module->additionalJobData)
 		));
 	}
-	
+
+	protected function getUrl()
+	{
+		$url = $this->url;
+		if ($url instanceof Closure) {
+			$url = call_user_func($url, $this->owner);
+		}
+
+		if ($this->auth && $this->authMethod == self::AUTH_METHOD_CUSTOM && $this->authTokenSendIn == self::AUTH_TOKEN_SEND_IN_QUERY) {
+			$url .= (parse_url($url, PHP_URL_QUERY) ? '&' : '?') . http_build_query([
+					$this->authTokenField => $this->authToken
+				]);
+		}
+		return $url;
+	}
+
+	/**
+	 * @return array
+	 * get header paramerters
+	 * when set auth is true set authorization method in header
+	 */
 	protected function getHeaders()
 	{
-		$auth = $this->auth ? ['Authorization' => $this->authMethod . ' ' . $this->authToken] : [];
+
+		$auth = [];
+		if($this->auth && $this->authTokenSendIn == self::AUTH_TOKEN_SEND_IN_HEADER){
+			if ($this->authMethod == self::AUTH_METHOD_CUSTOM) {
+				$auth = [$this->authTokenField => $this->authToken];
+			} else {
+				$auth = ['Authorization' => $this->authMethod . ' ' . $this->authToken];
+			}
+		}
+
 		return $auth + $this->initializeData($this->headers);
 	}
 
@@ -344,7 +416,14 @@ class WebhookBehavior extends Behavior
      */
     protected function getResponse($action): array
     {
-        return [
+		$auth = [];
+		if($this->auth && $this->authMethod == self::AUTH_METHOD_CUSTOM && $this->authTokenSendIn == self::AUTH_TOKEN_SEND_IN_BODY){
+			$auth = [
+				$this->authTokenField => $this->authToken
+			];
+		}
+
+        return $auth + [
             'model_name' => $this->modelName,
             'action' => $action,
             'model_id' => $this->owner->{$this->primaryKey},
@@ -394,6 +473,32 @@ class WebhookBehavior extends Behavior
 		}
 
 		return $data;
+	}
+
+	public static function items($key)
+	{
+		$items = [
+			'authMethods' => [
+				self::AUTH_METHOD_BASIC,
+				self::AUTH_METHOD_BEARER,
+				self::AUTH_METHOD_DIGEST,
+				self::AUTH_METHOD_CUSTOM,
+			],
+			'authTokenSendIn' => [
+				self::AUTH_TOKEN_SEND_IN_HEADER,
+				self::AUTH_TOKEN_SEND_IN_QUERY,
+				self::AUTH_TOKEN_SEND_IN_BODY,
+			],
+			'httpMethods' => [
+				self::HTTP_METHOD_GET,
+				self::HTTP_METHOD_POST,
+				self::HTTP_METHOD_PUT,
+				self::HTTP_METHOD_DELETE,
+				self::HTTP_METHOD_PATCH,
+			],
+		];
+
+		return $items[$key] ?? [];
 	}
 
 }
