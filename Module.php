@@ -40,21 +40,34 @@ class Module extends \yii\base\Module
 
 	/**
 	 * @var string the webhook url auth method
-	 * you can use 'Basic' | 'Bearer' | 'Digest'
+	 * you can use 'Basic' | 'Bearer' | 'Digest' | 'custom'
 	 */
-	public $authMethod = 'Basic';
+	public $authMethod = WebhookBehavior::AUTH_METHOD_BASIC;
+
+	/**
+	 * @var string the wat to send auth token
+	 * you can use 'header' | 'body' | 'query'
+	 */
+	public $authTokenSendIn = WebhookBehavior::AUTH_TOKEN_SEND_IN_HEADER;
+
+
+	/**
+	 * @var string the auth token field name send in $authTokenSendIn
+	 */
+	public $authTokenField = 'authorization';
 
 	/**
 	 * @var string the webhook url auth toekn
 	 * @see https://www.loginradius.com/blog/async/everything-you-want-to-know-about-authorization-headers/
 	 * example for Basic: base64_encode("$username:$password");
+	 * for other way just use the token
 	 */
 	public $authToken;
 
 	/**
 	 * @var string the http method.
 	 */
-	public $send_method = 'POST';
+	public $send_method = WebhookBehavior::HTTP_METHOD_POST;
 
 	/**
 	 * @var string the queue name
@@ -87,11 +100,20 @@ class Module extends \yii\base\Module
 	{
 		parent::init();
 
+		if (!in_array($this->authMethod, WebhookBehavior::items('authMethods'))) {
+			throw new InvalidConfigException('Invalid auth method');
+		}
+
+		if (!in_array($this->authTokenSendIn, WebhookBehavior::items('authTokenSendIn'))) {
+			throw new InvalidConfigException('Invalid auth token send in');
+		}
+
+
 		if ($this->auth && !$this->authToken) {
 			throw new InvalidConfigException('You must set authToken to enable auth.');
 		}
 
-		if (!in_array($this->send_method, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])) {
+		if (!in_array($this->send_method, WebhookBehavior::items('httpMethods'))) {
 			throw new InvalidConfigException('Invalid send_method, must be GET, POST, PUT, DELETE or PATCH');
 		}
 	}
