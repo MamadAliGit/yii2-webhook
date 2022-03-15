@@ -165,6 +165,20 @@ class WebhookBehavior extends Behavior
 	 */
 	public $module;
 
+	/**
+	 * @var string event name to send to webhook for after insert
+	 */
+	public $insertEventName = 'insert';
+
+	/**
+	 * @var string event name to send to webhook for before update
+	 */
+	public $updateEventName = 'update';
+
+	/**
+	 * @var string event name to send to webhook for after Delete
+	 */
+	public $deleteEventName = 'delete';
 
     /**
      * @inheritdoc
@@ -271,7 +285,7 @@ class WebhookBehavior extends Behavior
 	public function afterInsert()
 	{
         if($this->canSendWebhook()){
-            $this->sendToWebhook('insert');
+            $this->sendToWebhook($this->insertEventName);
         }
 	}
 
@@ -281,7 +295,7 @@ class WebhookBehavior extends Behavior
     public function beforeUpdate()
     {
         if($this->canSendWebhook()){
-            $this->sendToWebhook('update');
+            $this->sendToWebhook($this->updateEventName);
         }
     }
 
@@ -291,7 +305,7 @@ class WebhookBehavior extends Behavior
     public function afterDelete()
     {
         if($this->canSendWebhook()){
-            $this->sendToWebhook('delete');
+            $this->sendToWebhook($this->deleteEventName);
         }
     }
 
