@@ -171,7 +171,7 @@ class WebhookBehavior extends Behavior
 	public $insertEventName = 'insert';
 
 	/**
-	 * @var string event name to send to webhook for before update
+	 * @var string event name to send to webhook for after update
 	 */
 	public $updateEventName = 'update';
 
@@ -273,7 +273,7 @@ class WebhookBehavior extends Behavior
 	public function events()
 	{
 		return [
-			BaseActiveRecord::EVENT_BEFORE_UPDATE => 'beforeUpdate',
+			BaseActiveRecord::EVENT_AFTER_UPDATE => 'afterUpdate',
 			BaseActiveRecord::EVENT_AFTER_INSERT => 'afterInsert',
 			BaseActiveRecord::EVENT_AFTER_DELETE => 'afterDelete',
 		];
@@ -292,7 +292,7 @@ class WebhookBehavior extends Behavior
 	/**
 	 * This method is called at the beginning of updating a record.
 	 */
-    public function beforeUpdate()
+    public function afterUpdate()
     {
         if($this->canSendWebhook()){
             $this->sendToWebhook($this->updateEventName);
