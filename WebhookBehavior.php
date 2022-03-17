@@ -437,10 +437,16 @@ class WebhookBehavior extends Behavior
 			];
 		}
 
+		if($this->primaryKey instanceof Closure) {
+			$model_id = call_user_func($this->primaryKey, $this->owner);
+		} else {
+			$model_id = $this->owner->{$this->primaryKey};
+		}
+
         return $auth + [
             'model_name' => $this->modelName,
             'action' => $action,
-            'model_id' => $this->owner->{$this->primaryKey},
+            'model_id' => $model_id,
             'data' => $this->getAttributes(),
         ] + $this->initializeData($this->additionalData);
     }
