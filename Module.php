@@ -90,6 +90,11 @@ class Module extends \yii\base\Module
 	public $jobTtr = 60;
 
 	/**
+	 * @var int the number of seconds to wait before run job.
+	 */
+	public $jobDelay = 0;
+
+	/**
 	 * @var bool save webhook log
 	 */
 	public $saveLog = true;

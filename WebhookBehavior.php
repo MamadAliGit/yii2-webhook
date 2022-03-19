@@ -383,7 +383,7 @@ class WebhookBehavior extends Behavior
 	protected function sendToQueue($webhook_id)
 	{
 		$jobClass = $this->module->jobNamespace . '\WebhookJob';
-		return Yii::$app->{$this->module->queueName}->push(new $jobClass([
+		return Yii::$app->{$this->module->queueName}->delay($this->module->jobDelay)->push(new $jobClass([
 				'webhook_id' => $webhook_id,
 			] + $this->initializeData($this->module->additionalJobData)
 		));
