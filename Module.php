@@ -101,9 +101,34 @@ class Module extends \yii\base\Module
 
 	public $controllerNamespace = 'mamadali\webhook\controllers';
 
+	/**
+	 * @var array
+	 */
+	public $modelMap = [];
+
+	/**
+	 * @var string
+	 */
+	public $webhookModelClass = 'mamadali\webhook\models\Webhook';
+
+	/**
+	 * @var string
+	 */
+	public $webhookLogModelClass = 'mamadali\webhook\models\WebhookLog';
+
 	public function init()
 	{
 		parent::init();
+
+		if($this->modelMap){
+			if(isset($this->modelMap['Webhook'])){
+				$this->webhookModelClass = $this->modelMap['Webhook'];
+			}
+
+			if (isset($this->modelMap['WebhookLog'])) {
+				$this->webhookLogModelClass = $this->modelMap['WebhookLog'];
+			}
+		}
 
 		if (!in_array($this->authMethod, WebhookBehavior::items('authMethods'))) {
 			throw new InvalidConfigException('Invalid auth method');
@@ -128,7 +153,7 @@ class Module extends \yii\base\Module
 	 *
 	 * @return bool
 	 */
-	public function send(int $webhook_id)
+	public function send($webhook_id)
 	{
 		$webhook = $this->findWebhookModel($webhook_id);
 
@@ -155,11 +180,11 @@ class Module extends \yii\base\Module
 	 * @param $webhook Webhook
 	 * @param $response Response
 	 */
-	protected function saveLog(Webhook $webhook, Response $response)
+	protected function saveLog($webhook, Response $response)
 	{
 		$transaction = \Yii::$app->db->beginTransaction();
 		try {
-			$log = new WebhookLog();
+			$log = new $this->webhookLogModelClass();
 			$log->webhook_id = $webhook->id;
 			$log->is_ok = $response->isOk;
 			$log->response_status_code = $response->statusCode;
@@ -188,7 +213,7 @@ class Module extends \yii\base\Module
 	 */
 	protected function findWebhookModel($id)
 	{
-		$model = Webhook::findOne($id);
+		$model = $this->webhookModelClass::findOne($id);
 		if (!$model) {
 			throw new HttpException(404, 'Webhook not found');
 		}

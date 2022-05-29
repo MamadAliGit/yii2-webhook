@@ -351,7 +351,7 @@ class WebhookBehavior extends Behavior
 	{
 		$transaction = \Yii::$app->db->beginTransaction();
 		try {
-			$webhook = new WebhookModel();
+			$webhook = new $this->module->webhookModelClass();
 			$webhook->url = $this->getUrl();
 			$webhook->action = $action;
 			$webhook->model_id = $this->owner->{$this->primaryKey};

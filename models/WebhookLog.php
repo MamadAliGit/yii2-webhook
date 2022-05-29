@@ -61,13 +61,4 @@ class WebhookLog extends \yii\db\ActiveRecord
             'response_headers' => Yii::t('app', 'Response Headers'),
         ];
     }
-
-    /**
-     * {@inheritdoc}
-     * @return WebhookLogQuery the active query used by this AR class.
-     */
-    public static function find()
-    {
-        return new WebhookLogQuery(get_called_class());
-    }
 }

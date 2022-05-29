@@ -68,13 +68,4 @@ class Webhook extends \yii\db\ActiveRecord
             'headers' => Yii::t('app', 'Headers'),
         ];
     }
-
-    /**
-     * {@inheritdoc}
-     * @return WebhookQuery the active query used by this AR class.
-     */
-    public static function find()
-    {
-        return new WebhookQuery(get_called_class());
-    }
 }
